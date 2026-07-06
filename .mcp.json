@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "memoria": {
+      "type": "stdio",
+      "command": "bash",
+      "args": ["${CLAUDE_PROJECT_DIR:-.}/packages/memoria-mcp/run.sh"]
+    }
+  }
+}

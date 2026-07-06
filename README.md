@@ -19,14 +19,35 @@ npm install --prefix packages/memoria-mcp
 npm run check --prefix packages/memoria-mcp
 ```
 
-## MCP (Cursor)
+## Agent setup (Cursor + Claude Code)
 
-Configured in `.cursor/mcp.json`:
+### Cursor
 
-- `mission-control` — project tracking at http://10.10.50.6/
-- `memoria` — local memory tools
+Copy the example and install deps:
 
-Restart Cursor after changes.
+```bash
+cp .cursor/mcp.json.example .cursor/mcp.json   # or merge memoria entry
+npm install --prefix packages/memoria-mcp
+```
+
+Restart Cursor after editing `.cursor/mcp.json`.
+
+### Claude Code
+
+`.mcp.json` at the repo root registers the `memoria` MCP server (project scope, team-shared). Install deps, start a new session, and approve the server when prompted.
+
+```bash
+npm install --prefix packages/memoria-mcp
+```
+
+Project instructions for Claude Code: `CLAUDE.md`. Agent skill: `.cursor/skills/memoria/SKILL.md`.
+
+### Verify Phase 3
+
+```bash
+node scripts/check-phase3.js
+npm run check --prefix packages/memoria-mcp
+```
 
 ## Tools
 
@@ -61,7 +82,7 @@ vault/
 
 - [x] Phase 1: MCP skeleton (remember / recall / status)
 - [x] Phase 2: Salience gate, entities, multi-signal recall
-- [ ] Phase 3: memoria skill + Claude Code config
+- [x] Phase 3: memoria skill + Claude Code config
 - [ ] Phase 4: Memoria UX (wikilinks, daily notes, `.memoriaignore`, conversation hooks) + consolidation job
 
 Track progress: [Mission Control — Memory Project](http://10.10.50.6/)
