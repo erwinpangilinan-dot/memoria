@@ -1,12 +1,14 @@
 {
   "name": "memoria-mcp",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Memoria MCP server — local memory with SQLite + markdown vault",
   "type": "module",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "check": "node scripts/self_check.js"
+    "start:http": "node src/http.js",
+    "check": "node scripts/self_check.js",
+    "check:http": "node scripts/check_http.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",

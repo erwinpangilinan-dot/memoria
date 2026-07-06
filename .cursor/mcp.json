@@ -5,8 +5,7 @@
       "args": ["/home/claude/claude_project/kanban_dashboard/mcp/run.sh"]
     },
     "memoria": {
-      "command": "bash",
-      "args": ["/home/claude/claude_project/Memory_Project/packages/memoria-mcp/run.sh"]
+      "url": "http://127.0.0.1:8765/mcp"
     }
   }
 }

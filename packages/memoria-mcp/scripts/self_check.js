@@ -41,7 +41,7 @@ try {
   const st = store.status();
   if (st.total_memories !== 2) throw new Error(JSON.stringify(st));
   if (st.total_entities < 2) throw new Error(JSON.stringify(st));
-  if (st.version !== '0.3.0') throw new Error(JSON.stringify(st));
+  if (st.version !== '0.4.0') throw new Error(JSON.stringify(st));
 
   const peoplePage = join(vault, 'People', 'sarah.md');
   if (!existsSync(peoplePage)) throw new Error('missing People/sarah.md');

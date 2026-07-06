@@ -1,6 +1,9 @@
 {
   "mcpServers": {
     "memoria": {
+      "url": "http://127.0.0.1:8765/mcp"
+    },
+    "memoria-stdio-fallback": {
       "command": "bash",
       "args": ["${workspaceFolder}/packages/memoria-mcp/run.sh"]
     }

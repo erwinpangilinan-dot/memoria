@@ -19,6 +19,45 @@ npm install --prefix packages/memoria-mcp
 npm run check --prefix packages/memoria-mcp
 ```
 
+## Environment
+
+| Variable | Default |
+|----------|---------|
+| `MEMORIA_VAULT_PATH` | `<repo>/vault` |
+| `MEMORIA_DB_PATH` | `<vault>/.memoria/index.db` |
+| `MEMORIA_HTTP_HOST` | `127.0.0.1` |
+| `MEMORIA_HTTP_PORT` | `8765` |
+| `MEMORIA_HTTP_TOKEN` | unset (optional Bearer auth) |
+
+(`BRAIN_*` env vars still work as aliases.)
+
+## Always-on HTTP service
+
+Run Memoria as a background service (survives reboot with systemd):
+
+```bash
+chmod +x scripts/install-memoria-service.sh packages/memoria-mcp/run-http.sh
+./scripts/install-memoria-service.sh
+```
+
+Health check: `curl http://127.0.0.1:8765/health`
+
+Point Cursor at the running service (instead of spawning stdio):
+
+```json
+{
+  "mcpServers": {
+    "memoria": {
+      "url": "http://127.0.0.1:8765/mcp"
+    }
+  }
+}
+```
+
+Optional auth: set `MEMORIA_HTTP_TOKEN` in the service environment and add `"headers": { "Authorization": "Bearer YOUR_TOKEN" }` in MCP config.
+
+Manual start (no systemd): `bash packages/memoria-mcp/run-http.sh`
+
 ## Agent setup (Cursor + Claude Code)
 
 ### Cursor
@@ -87,6 +126,9 @@ vault/
 |----------|---------|
 | `MEMORIA_VAULT_PATH` | `<repo>/vault` |
 | `MEMORIA_DB_PATH` | `<vault>/.memoria/index.db` |
+| `MEMORIA_HTTP_HOST` | `127.0.0.1` |
+| `MEMORIA_HTTP_PORT` | `8765` |
+| `MEMORIA_HTTP_TOKEN` | unset (optional Bearer auth) |
 
 (`BRAIN_*` env vars still work as aliases.)
 

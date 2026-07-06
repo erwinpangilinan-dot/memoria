@@ -1,0 +1,14 @@
+[Unit]
+Description=Memoria MCP HTTP service (always-on)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=@REPO@/packages/memoria-mcp
+ExecStart=@REPO@/packages/memoria-mcp/run-http.sh
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target

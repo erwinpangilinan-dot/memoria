@@ -328,7 +328,7 @@ export class MemoryStore {
       .prepare('SELECT created_at FROM memories ORDER BY created_at DESC LIMIT 1')
       .get();
     return {
-      version: '0.3.0',
+      version: '0.4.0',
       total_memories: total,
       total_entities: entities,
       by_type: byType,

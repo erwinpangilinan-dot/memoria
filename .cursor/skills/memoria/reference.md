@@ -14,7 +14,17 @@
 2. `npm install --prefix packages/memoria-mcp`
 3. Start a new session; approve the `memoria` server when prompted.
 
-MCP entry: `packages/memoria-mcp/run.sh` (sets vault/db paths from repo root).
+MCP entry: `packages/memoria-mcp/run.sh` (stdio) or `packages/memoria-mcp/run-http.sh` (always-on HTTP).
+
+### Always-on service (recommended)
+
+```bash
+./scripts/install-memoria-service.sh
+```
+
+Then point Cursor at `http://127.0.0.1:8765/mcp` (see `.cursor/mcp.json.example`). Service auto-starts on boot (systemd user unit + linger).
+
+Health: `curl http://127.0.0.1:8765/health`
 
 ## Environment
 
@@ -22,6 +32,9 @@ MCP entry: `packages/memoria-mcp/run.sh` (sets vault/db paths from repo root).
 |----------|---------|
 | `MEMORIA_VAULT_PATH` | `<repo>/vault` |
 | `MEMORIA_DB_PATH` | `<vault>/.memoria/index.db` |
+| `MEMORIA_HTTP_HOST` | `127.0.0.1` |
+| `MEMORIA_HTTP_PORT` | `8765` |
+| `MEMORIA_HTTP_TOKEN` | optional Bearer token |
 
 `BRAIN_VAULT_PATH` and `BRAIN_DB_PATH` work as aliases.
 
@@ -72,7 +85,7 @@ No parameters. Returns:
 
 ```json
 {
-  "version": "0.3.0",
+  "version": "0.4.0",
   "total_memories": 0,
   "total_entities": 0,
   "by_type": { "semantic": 0, "episodic": 0 },
