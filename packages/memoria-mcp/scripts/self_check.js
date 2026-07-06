@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { MemoryStore } from '../src/store.js';
@@ -13,8 +13,10 @@ try {
   const rejected = store.remember('ok', 'episodic', 'low');
   if (rejected.stored !== false) throw new Error(`gate should reject: ${JSON.stringify(rejected)}`);
 
-  store.remember('[[Sarah]] birthday is March 12', 'semantic', 'high');
-  store.remember('Keys on [[kitchen counter]]', 'episodic', 'medium', true);
+  const sem = store.remember('[[Sarah]] birthday is March 12', 'semantic', 'high');
+  const epi = store.remember('Keys on [[kitchen counter]]', 'episodic', 'medium', true);
+  if (!sem.entity_pages?.length) throw new Error(`entity pages: ${JSON.stringify(sem)}`);
+  if (!epi.daily_path) throw new Error(`daily note: ${JSON.stringify(epi)}`);
 
   const hits = store.recall('Sarah birthday');
   if (!hits.some((h) => h.content.includes('March 12'))) {
@@ -24,14 +26,25 @@ try {
   const entity = store.entity('sarah');
   if (!entity.memories.length) throw new Error(JSON.stringify(entity));
 
-  const hits2 = store.recall('keys kitchen');
-  if (!hits2.some((h) => h.content.includes('kitchen counter'))) {
-    throw new Error(`recall2 failed: ${JSON.stringify(hits2)}`);
-  }
+  const graph = store.graph();
+  if (graph.node_count < 3 || graph.edge_count < 1) throw new Error(JSON.stringify(graph));
+
+  const daily = store.daily();
+  if (!daily.content?.includes('kitchen counter')) throw new Error(JSON.stringify(daily));
+
+  const reindex = store.reindex();
+  if (reindex.scanned < 2) throw new Error(JSON.stringify(reindex));
+
+  const consolidation = store.runConsolidate({ dry_run: true });
+  if (!Array.isArray(consolidation.actions)) throw new Error(JSON.stringify(consolidation));
 
   const st = store.status();
   if (st.total_memories !== 2) throw new Error(JSON.stringify(st));
   if (st.total_entities < 2) throw new Error(JSON.stringify(st));
+  if (st.version !== '0.3.0') throw new Error(JSON.stringify(st));
+
+  const peoplePage = join(vault, 'People', 'sarah.md');
+  if (!existsSync(peoplePage)) throw new Error('missing People/sarah.md');
 
   console.log('self_check: ok');
 } finally {

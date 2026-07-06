@@ -18,4 +18,4 @@ Skill details: `.cursor/skills/memoria/SKILL.md`
 
 ## Vault
 
-Markdown notes live in `vault/` (`Facts/`, `Episodes/`, `People/`, `Projects/`). SQLite index at `vault/.memoria/index.db`.
+Markdown notes live in `vault/` (`Facts/`, `Episodes/`, `People/`, `Projects/`, `Memory/Daily/`). SQLite index at `vault/.memoria/index.db`. After editing vault files by hand, run `memoria_reindex`.

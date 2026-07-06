@@ -10,7 +10,7 @@ const store = new MemoryStore(dbPath(), vaultPath());
 
 const server = new McpServer({
   name: 'memoria',
-  version: '0.2.0',
+  version: '0.3.0',
 });
 
 function jsonResult(data) {
@@ -56,6 +56,40 @@ server.tool(
   'Index health: memory counts, entity counts, vault and database paths.',
   {},
   async () => jsonResult(store.status())
+);
+
+server.tool(
+  'memoria_graph',
+  'Entity-memory graph: nodes (entities + memories) and edges (links + co-occurrence).',
+  {},
+  async () => jsonResult(store.graph())
+);
+
+server.tool(
+  'memoria_daily',
+  'Read a daily note from Memory/Daily/. Defaults to today.',
+  {
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  },
+  async ({ date }) => jsonResult(store.daily(date ?? null))
+);
+
+server.tool(
+  'memoria_reindex',
+  'Scan vault markdown files into SQLite (respects .memoriaignore). Use after human edits.',
+  {},
+  async () => jsonResult(store.reindex())
+);
+
+server.tool(
+  'memoria_consolidate',
+  'Consolidation job: find duplicates and promote aged episodic memories to semantic.',
+  {
+    dry_run: z.boolean().optional().describe('Preview actions without applying (default true)'),
+    min_age_days: z.number().int().min(1).max(365).optional(),
+  },
+  async ({ dry_run = true, min_age_days = 7 }) =>
+    jsonResult(store.runConsolidate({ dry_run, min_age_days }))
 );
 
 const transport = new StdioServerTransport();

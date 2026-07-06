@@ -1,10 +1,13 @@
 import { randomUUID } from 'node:crypto';
-import { mkdirSync } from 'node:fs';
-import { dirname } from 'node:path';
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { extractEntities, normalizeEntity } from './entities.js';
 import { evaluateSalience } from './gate.js';
-import { writeMemoryFile } from './vault.js';
+import { appendDailyNote, ensureEntityPage, writeMemoryFile } from './vault.js';
+import { buildGraph } from './graph.js';
+import { consolidate } from './consolidate.js';
+import { reindexVault } from './reindex.js';
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS memories (
@@ -110,6 +113,12 @@ export class MemoryStore {
 
     this.linkEntities(id, gate.entities, createdAt);
 
+    const daily_path =
+      memoryType === 'episodic' ? appendDailyNote(this.vaultPath, memoryType, trimmed, vaultRel) : null;
+    const entity_pages = gate.entities.map((name) =>
+      ensureEntityPage(this.vaultPath, name, vaultRel)
+    );
+
     return {
       stored: true,
       id,
@@ -118,6 +127,8 @@ export class MemoryStore {
       salience_score: gate.score,
       entities: gate.entities,
       vault_path: vaultRel,
+      daily_path,
+      entity_pages,
       created_at: createdAt,
     };
   }
@@ -286,6 +297,26 @@ export class MemoryStore {
     };
   }
 
+  graph() {
+    return buildGraph(this.db);
+  }
+
+  reindex() {
+    return reindexVault(this);
+  }
+
+  runConsolidate(options = {}) {
+    return consolidate(this, options);
+  }
+
+  daily(date = null) {
+    const d = date || new Date().toISOString().slice(0, 10);
+    const rel = `Memory/Daily/${d}.md`;
+    const abs = join(this.vaultPath, rel);
+    if (!existsSync(abs)) return { date: d, path: rel, content: null };
+    return { date: d, path: rel, content: readFileSync(abs, 'utf8') };
+  }
+
   status() {
     const total = this.db.prepare('SELECT COUNT(*) AS n FROM memories').get().n;
     const entities = this.db.prepare('SELECT COUNT(*) AS n FROM entities').get().n;
@@ -297,7 +328,7 @@ export class MemoryStore {
       .prepare('SELECT created_at FROM memories ORDER BY created_at DESC LIMIT 1')
       .get();
     return {
-      version: '0.2.0',
+      version: '0.3.0',
       total_memories: total,
       total_entities: entities,
       by_type: byType,

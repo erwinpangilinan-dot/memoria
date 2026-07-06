@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionEnd": [
+      {
+        "command": ".cursor/hooks/memoria-session-log.sh"
+      }
+    ]
+  }
+}

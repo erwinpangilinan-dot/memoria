@@ -72,7 +72,7 @@ No parameters. Returns:
 
 ```json
 {
-  "version": "0.2.0",
+  "version": "0.3.0",
   "total_memories": 0,
   "total_entities": 0,
   "by_type": { "semantic": 0, "episodic": 0 },
@@ -81,6 +81,36 @@ No parameters. Returns:
   "db_path": "..."
 }
 ```
+
+### memoria_graph
+
+No parameters. Returns `{ node_count, edge_count, nodes[], edges[] }`.
+
+- **nodes:** `entity` or `memory` kind, with `label`, optional `vault_path`
+- **edges:** `linked` (entity→memory) or `cooccurrence` (entity↔entity in same memory)
+
+### memoria_daily
+
+| Param | Type | Default |
+|-------|------|---------|
+| `date` | `YYYY-MM-DD` | today |
+
+Returns `{ date, path, content }` — `content` is `null` if the note does not exist.
+
+### memoria_reindex
+
+No parameters. Scans `vault/**/*.md` (skips `.memoria/`, respects `.memoriaignore`), upserts into SQLite.
+
+Returns `{ scanned, added, updated, skipped, indexed_ids, ignored_patterns }`.
+
+### memoria_consolidate
+
+| Param | Type | Default |
+|-------|------|---------|
+| `dry_run` | boolean | `true` |
+| `min_age_days` | int 1–365 | `7` |
+
+Finds duplicate content and aged episodic memories to promote to semantic. Set `dry_run: false` to apply.
 
 ## Salience gate (threshold 0.45)
 
@@ -109,6 +139,16 @@ vault/
 ```
 
 Each stored memory writes a markdown file with YAML frontmatter (`id`, `type`, `importance`, `created_at`, `entities`).
+
+Episodic memories also append to `Memory/Daily/YYYY-MM-DD.md`. Entities get stub pages in `People/` or `Projects/` with backlinks.
+
+### .memoriaignore
+
+Copy `vault/.memoriaignore.example` → `vault/.memoriaignore`. One glob/prefix per line; used by `memoria_reindex`.
+
+### Conversation hooks
+
+`.cursor/hooks.json` registers `sessionEnd` → `.cursor/hooks/memoria-session-log.sh`, which appends a line to today's daily note.
 
 ## Troubleshooting
 

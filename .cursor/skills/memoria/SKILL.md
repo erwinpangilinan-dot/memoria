@@ -72,6 +72,17 @@ Use when setup is new or recall returns nothing unexpectedly.
 | `memoria_remember` | Store with salience gate (+ markdown file in vault) |
 | `memoria_entity` | All memories linked to a person/topic |
 | `memoria_status` | Index health, counts, vault/db paths |
+| `memoria_graph` | Entity-memory graph for browsing connections |
+| `memoria_daily` | Read daily log note (`Memory/Daily/YYYY-MM-DD.md`) |
+| `memoria_reindex` | Sync human-edited vault files into SQLite |
+| `memoria_consolidate` | Preview/run dedupe + episodic→semantic promotion |
+
+## Vault UX (Phase 4)
+
+- **Episodic** memories append to `Memory/Daily/YYYY-MM-DD.md` and get entity pages under `People/` or `Projects/`
+- **`.memoriaignore`** at vault root excludes paths from `memoria_reindex` (see `vault/.memoriaignore.example`)
+- **Session hook** — `.cursor/hooks.json` logs session end to today's daily note
+- Run **`memoria_consolidate`** periodically (`dry_run: false` to apply)
 
 ## Do not
 

@@ -49,6 +49,14 @@ node scripts/check-phase3.js
 npm run check --prefix packages/memoria-mcp
 ```
 
+### Verify Phase 4
+
+```bash
+node scripts/check-phase4.js
+npm run check --prefix packages/memoria-mcp
+cp vault/.memoriaignore.example vault/.memoriaignore   # optional
+```
+
 ## Tools
 
 | Tool | Purpose |
@@ -57,6 +65,10 @@ npm run check --prefix packages/memoria-mcp
 | `memoria_recall` | Multi-signal search (FTS + entities + recency) |
 | `memoria_entity` | Lookup entity and linked memories |
 | `memoria_status` | Counts, entities, vault/db paths |
+| `memoria_graph` | Entity-memory graph (nodes + edges) |
+| `memoria_daily` | Read today's daily note (`Memory/Daily/`) |
+| `memoria_reindex` | Sync vault markdown → SQLite (`.memoriaignore`) |
+| `memoria_consolidate` | Dedupe + promote aged episodic → semantic |
 
 ## Memoria layout (`vault/`)
 
@@ -83,6 +95,6 @@ vault/
 - [x] Phase 1: MCP skeleton (remember / recall / status)
 - [x] Phase 2: Salience gate, entities, multi-signal recall
 - [x] Phase 3: memoria skill + Claude Code config
-- [ ] Phase 4: Memoria UX (wikilinks, daily notes, `.memoriaignore`, conversation hooks) + consolidation job
+- [x] Phase 4: Memoria UX (wikilinks, daily notes, `.memoriaignore`, conversation hooks) + consolidation job
 
 Track progress: [Mission Control — Memory Project](http://10.10.50.6/)
