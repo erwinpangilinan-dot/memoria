@@ -19,6 +19,7 @@ Use the **mission-control** MCP server to read and update the team's Mission Con
 | **Project name** | Memory Project |
 | **Project ID** | `b1a559b7-2aab-42d6-b450-9d8800842645` |
 | **Dashboard** | http://10.10.50.6/ |
+| **GitHub** | https://github.com/erwinpangilinan-dot/memoria |
 | **API** | http://10.10.50.6/api (via kanban_dashboard `.env`) |
 
 When creating or moving tasks for this repo, use the project ID above (or `list_projects` to verify).

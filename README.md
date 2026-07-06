@@ -2,6 +2,8 @@
 
 Human-like selective memory for AI agents: **Memoria** (local markdown vault you browse and edit) + SQLite index, exposed to agents via MCP.
 
+**Repository:** https://github.com/erwinpangilinan-dot/memoria
+
 ## Terminology
 
 | Term | What it is |
