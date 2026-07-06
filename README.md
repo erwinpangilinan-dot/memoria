@@ -32,9 +32,10 @@ Restart Cursor after changes.
 
 | Tool | Purpose |
 |------|---------|
-| `memoria_remember` | Store episodic or semantic memory (+ markdown file) |
-| `memoria_recall` | FTS search, returns top-K matches |
-| `memoria_status` | Counts, vault/db paths |
+| `memoria_remember` | Store with salience gate (+ markdown file) |
+| `memoria_recall` | Multi-signal search (FTS + entities + recency) |
+| `memoria_entity` | Lookup entity and linked memories |
+| `memoria_status` | Counts, entities, vault/db paths |
 
 ## Memoria layout (`vault/`)
 
@@ -59,7 +60,7 @@ vault/
 ## Roadmap
 
 - [x] Phase 1: MCP skeleton (remember / recall / status)
-- [ ] Phase 2: Salience gate, vectors, entities, graph
+- [x] Phase 2: Salience gate, entities, multi-signal recall
 - [ ] Phase 3: memoria skill + Claude Code config
 - [ ] Phase 4: Memoria UX (wikilinks, daily notes, `.memoriaignore`, conversation hooks) + consolidation job
 

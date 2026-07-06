@@ -9,7 +9,7 @@ export function slugify(text, maxLen = 48) {
   return (slug.slice(0, maxLen).replace(/-$/, '') || 'memory');
 }
 
-export function writeMemoryFile(vault, memoryType, content, importance, memoryId) {
+export function writeMemoryFile(vault, memoryType, content, importance, memoryId, entities = []) {
   const now = new Date();
   const slug = slugify(content);
   const rel =
@@ -20,12 +20,17 @@ export function writeMemoryFile(vault, memoryType, content, importance, memoryId
   const path = join(vault, rel);
   mkdirSync(dirname(path), { recursive: true });
 
+  const entityYaml =
+    entities.length > 0
+      ? `entities:\n${entities.map((e) => `  - ${e}`).join('\n')}\n`
+      : '';
+
   const body = `---
 id: ${memoryId}
 type: ${memoryType}
 importance: ${importance}
 created_at: ${now.toISOString()}
----
+${entityYaml}---
 
 ${content.trim()}
 `;

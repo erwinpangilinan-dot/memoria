@@ -10,7 +10,7 @@ const store = new MemoryStore(dbPath(), vaultPath());
 
 const server = new McpServer({
   name: 'memoria',
-  version: '0.1.0',
+  version: '0.2.0',
 });
 
 function jsonResult(data) {
@@ -19,19 +19,20 @@ function jsonResult(data) {
 
 server.tool(
   'memoria_remember',
-  'Store a memory in Memoria (SQLite index + markdown file in vault/).',
+  'Store a memory in Memoria after salience gating (SQLite + markdown). Rejects low-value noise unless force or high importance.',
   {
     content: z.string().min(1),
     memory_type: z.enum(['episodic', 'semantic']).optional(),
     importance: z.enum(['low', 'medium', 'high']).optional(),
+    force: z.boolean().optional().describe('Bypass salience gate'),
   },
-  async ({ content, memory_type = 'semantic', importance = 'medium' }) =>
-    jsonResult(store.remember(content, memory_type, importance))
+  async ({ content, memory_type = 'semantic', importance = 'medium', force = false }) =>
+    jsonResult(store.remember(content, memory_type, importance, force))
 );
 
 server.tool(
   'memoria_recall',
-  'Recall memories by FTS search. Returns top matches only, not the full database.',
+  'Multi-signal recall: FTS + entity links + recency + importance. Returns top matches only.',
   {
     query: z.string().min(1),
     limit: z.number().int().min(1).max(20).optional(),
@@ -42,8 +43,17 @@ server.tool(
 );
 
 server.tool(
+  'memoria_entity',
+  'Look up an entity (person, place, topic) and memories linked to it.',
+  {
+    name: z.string().min(1),
+  },
+  async ({ name }) => jsonResult(store.entity(name))
+);
+
+server.tool(
   'memoria_status',
-  'Index health: memory counts, Memoria vault path, database path.',
+  'Index health: memory counts, entity counts, vault and database paths.',
   {},
   async () => jsonResult(store.status())
 );
