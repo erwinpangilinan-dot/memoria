@@ -140,3 +140,7 @@ vault/
 - [x] Phase 4: Memoria UX (wikilinks, daily notes, `.memoriaignore`, conversation hooks) + consolidation job
 
 Track progress: [Mission Control — Memory Project](http://10.10.50.6/)
+
+## Architecture
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — CLS-inspired design (episodic + semantic + consolidation).
