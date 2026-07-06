@@ -11,10 +11,13 @@ const required = [
   'packages/memoria-mcp/src/reindex.js',
   'packages/memoria-mcp/src/consolidate.js',
   'packages/memoria-mcp/src/ignore.js',
+  'packages/memoria-mcp/scripts/session-recall.js',
   'packages/memoria-mcp/scripts/log-session.js',
   'vault/.memoriaignore.example',
   '.cursor/hooks.json',
   '.cursor/hooks/memoria-session-log.sh',
+  '.cursor/hooks/memoria-session-start.sh',
+  '.cursor/rules/memoria-session.mdc',
 ];
 
 for (const rel of required) {
@@ -25,8 +28,11 @@ const hooks = JSON.parse(readFileSync(join(root, '.cursor/hooks.json'), 'utf8'))
 if (!hooks.hooks?.sessionEnd?.some((h) => h.command?.includes('memoria-session-log'))) {
   throw new Error('.cursor/hooks.json: sessionEnd memoria hook missing');
 }
+if (!hooks.hooks?.sessionStart?.some((h) => h.command?.includes('memoria-session-start'))) {
+  throw new Error('.cursor/hooks.json: sessionStart memoria hook missing');
+}
 
-const index = readFileSync(join(root, 'packages/memoria-mcp/src/index.js'), 'utf8');
+const index = readFileSync(join(root, 'packages/memoria-mcp/src/create-server.js'), 'utf8');
 for (const tool of ['memoria_graph', 'memoria_daily', 'memoria_reindex', 'memoria_consolidate']) {
   if (!index.includes(tool)) throw new Error(`index.js: missing ${tool}`);
 }

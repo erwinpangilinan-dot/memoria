@@ -177,7 +177,7 @@ ponytail: promotion rewrites vault path to `Facts/` but leaves the old episodic 
 | **Daily notes** | Episodic entries append to `Memory/Daily/YYYY-MM-DD.md` |
 | **Graph** | `memoria_graph` — entity↔memory edges + entity co-occurrence |
 | **Ignore rules** | `vault/.memoriaignore` — excluded from `memoria_reindex` |
-| **Session hook** | `.cursor/hooks.json` → append session line to daily note on `sessionEnd` |
+| **Session hook** | `sessionStart` → recall into `.memoria/session-context.md`; `sessionEnd` → daily note |
 
 ---
 

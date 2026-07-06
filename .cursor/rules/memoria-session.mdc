@@ -1,0 +1,10 @@
+---
+description: Load Memoria auto-recall context at session start
+alwaysApply: true
+---
+
+# Memoria session context
+
+At the start of each conversation, read `vault/.memoria/session-context.md` if it exists (refreshed by the `sessionStart` hook). Use it as recalled Memoria context before non-trivial work. Cite vault paths when helpful.
+
+If the file is missing or empty, call `memoria_recall` with a query from the user's request.
