@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "mission-control": {
+      "command": "bash",
+      "args": ["/home/claude/claude_project/kanban_dashboard/mcp/run.sh"]
+    },
+    "memoria": {
+      "command": "bash",
+      "args": ["/home/claude/claude_project/Memory_Project/packages/memoria-mcp/run.sh"]
+    }
+  }
+}

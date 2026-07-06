@@ -1,0 +1,9 @@
+# Memoria index (rebuilt from vault)
+vault/.memoria/
+vault/.brain/
+
+# Node
+packages/memoria-mcp/node_modules/
+
+# OS
+.DS_Store

@@ -1,0 +1,15 @@
+{
+  "name": "memoria-mcp",
+  "version": "0.1.0",
+  "description": "Memoria MCP server — local memory with SQLite + markdown vault",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "check": "node scripts/self_check.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "zod": "^3.24.1"
+  }
+}

@@ -1,0 +1,64 @@
+# Second Brain / Memoria
+
+Human-like selective memory for AI agents: **Memoria** (local markdown vault you browse and edit) + SQLite index, exposed to agents via MCP.
+
+## Terminology
+
+| Term | What it is |
+|------|------------|
+| **Memoria** | Your human-facing second brain — markdown notes, wikilinks, daily log, graph |
+| **memoria MCP** | Agent interface — `memoria_remember`, `memoria_recall`, `memoria_status` |
+| **`vault/`** | Memoria storage on disk |
+
+## Quick start
+
+```bash
+npm install --prefix packages/memoria-mcp
+npm run check --prefix packages/memoria-mcp
+```
+
+## MCP (Cursor)
+
+Configured in `.cursor/mcp.json`:
+
+- `mission-control` — project tracking at http://10.10.50.6/
+- `memoria` — local memory tools
+
+Restart Cursor after changes.
+
+## Tools
+
+| Tool | Purpose |
+|------|---------|
+| `memoria_remember` | Store episodic or semantic memory (+ markdown file) |
+| `memoria_recall` | FTS search, returns top-K matches |
+| `memoria_status` | Counts, vault/db paths |
+
+## Memoria layout (`vault/`)
+
+```
+vault/
+├── Episodes/     # time-bound (keys location, today's events)
+├── Facts/        # durable facts (birthdays, preferences)
+├── People/
+├── Projects/
+└── Memory/Daily/
+```
+
+## Environment
+
+| Variable | Default |
+|----------|---------|
+| `MEMORIA_VAULT_PATH` | `<repo>/vault` |
+| `MEMORIA_DB_PATH` | `<vault>/.memoria/index.db` |
+
+(`BRAIN_*` env vars still work as aliases.)
+
+## Roadmap
+
+- [x] Phase 1: MCP skeleton (remember / recall / status)
+- [ ] Phase 2: Salience gate, vectors, entities, graph
+- [ ] Phase 3: memoria skill + Claude Code config
+- [ ] Phase 4: Memoria UX (wikilinks, daily notes, `.memoriaignore`, conversation hooks) + consolidation job
+
+Track progress: [Mission Control — Memory Project](http://10.10.50.6/)
