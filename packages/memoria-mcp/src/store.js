@@ -3,11 +3,20 @@ import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { extractEntities, normalizeEntity } from './entities.js';
+import { embedText } from './embed.js';
+import { EMBED_DIM, embedModel, embeddingsEnabled, embeddingsMode } from './config.js';
 import { evaluateSalience } from './gate.js';
 import { appendDailyNote, ensureEntityPage, writeMemoryFile } from './vault.js';
 import { buildGraph } from './graph.js';
 import { consolidate } from './consolidate.js';
 import { reindexVault } from './reindex.js';
+import {
+  embeddingCount,
+  ensureVectorSchema,
+  initVectorExtension,
+  searchEmbeddings,
+  upsertEmbedding,
+} from './vectors.js';
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS memories (
@@ -57,13 +66,24 @@ CREATE TABLE IF NOT EXISTS memory_entities (
 `;
 
 const IMPORTANCE_WEIGHT = { high: 1, medium: 0.55, low: 0.25 };
+const VERSION = '0.5.0';
 
 export class MemoryStore {
   constructor(dbFile, vault) {
     this.vaultPath = vault;
+    this.vectorsReady = false;
     mkdirSync(dirname(dbFile), { recursive: true });
-    this.db = new DatabaseSync(dbFile);
+    this.db = new DatabaseSync(dbFile, { allowExtension: true });
     this.db.exec(SCHEMA);
+    if (embeddingsEnabled()) {
+      try {
+        initVectorExtension(this.db);
+        ensureVectorSchema(this.db);
+        this.vectorsReady = true;
+      } catch (err) {
+        this.vectorError = err.message;
+      }
+    }
     this.backfillEntities();
   }
 
@@ -76,7 +96,7 @@ export class MemoryStore {
     }
   }
 
-  remember(content, memoryType = 'semantic', importance = 'medium', force = false) {
+  async remember(content, memoryType = 'semantic', importance = 'medium', force = false) {
     const trimmed = content.trim();
     const gate = evaluateSalience(trimmed, { importance, memoryType, force });
     if (!gate.store) {
@@ -88,7 +108,7 @@ export class MemoryStore {
       };
     }
 
-    const dup = this.recall(trimmed.split(/\s+/).slice(0, 8).join(' '), 1, memoryType);
+    const dup = await this.recall(trimmed.split(/\s+/).slice(0, 8).join(' '), 1, memoryType);
     if (dup.length && dup[0].content.trim() === trimmed) {
       return { stored: false, duplicate: true, existing: this.formatRow(dup[0]) };
     }
@@ -112,6 +132,7 @@ export class MemoryStore {
       .run(id, memoryType, trimmed, importance, vaultRel, createdAt);
 
     this.linkEntities(id, gate.entities, createdAt);
+    await this.embedMemoryId(id, trimmed);
 
     const daily_path =
       memoryType === 'episodic' ? appendDailyNote(this.vaultPath, memoryType, trimmed, vaultRel) : null;
@@ -131,6 +152,14 @@ export class MemoryStore {
       entity_pages,
       created_at: createdAt,
     };
+  }
+
+  async embedMemoryId(id, content = null) {
+    if (!this.vectorsReady) return;
+    const row = this.db.prepare('SELECT rowid, content FROM memories WHERE id = ?').get(id);
+    if (!row) return;
+    const vector = await embedText(content ?? row.content);
+    if (vector) upsertEmbedding(this.db, row.rowid, vector);
   }
 
   linkEntities(memoryId, names, createdAt) {
@@ -155,7 +184,7 @@ export class MemoryStore {
     }
   }
 
-  recall(query, limit = 8, memoryType = null) {
+  async recall(query, limit = 8, memoryType = null) {
     const tokens = tokenize(query);
     const pool = new Map();
 
@@ -164,6 +193,14 @@ export class MemoryStore {
     }
     for (const row of this.entityCandidates(tokens, memoryType, limit * 3)) {
       pool.set(row.id, { ...row, entity_match: true });
+    }
+    if (this.vectorsReady) {
+      const queryVector = await embedText(query);
+      if (queryVector) {
+        for (const row of searchEmbeddings(this.db, queryVector, limit * 3, memoryType)) {
+          pool.set(row.id, { ...(pool.get(row.id) || {}), ...row });
+        }
+      }
     }
     if (pool.size === 0) {
       for (const row of this.likeCandidates(query, memoryType, limit)) {
@@ -265,8 +302,16 @@ export class MemoryStore {
     const importance = IMPORTANCE_WEIGHT[row.importance] ?? 0.5;
     const recency = recencyBoost(row.created_at);
     const entityBoost = this.entityBoost(row.id, queryTokens);
+    const vectorNorm =
+      row.vector_distance != null ? 1 / (1 + Math.max(0, row.vector_distance)) : 0;
     const score =
-      ftsNorm * 0.45 + entityBoost * 0.3 + recency * 0.15 + importance * 0.1;
+      this.vectorsReady && row.vector_distance != null
+        ? ftsNorm * 0.35 +
+          entityBoost * 0.25 +
+          vectorNorm * 0.2 +
+          recency * 0.12 +
+          importance * 0.08
+        : ftsNorm * 0.45 + entityBoost * 0.3 + recency * 0.15 + importance * 0.1;
     return { ...row, score: Math.round(score * 10000) / 10000 };
   }
 
@@ -301,7 +346,7 @@ export class MemoryStore {
     return buildGraph(this.db);
   }
 
-  reindex() {
+  async reindex() {
     return reindexVault(this);
   }
 
@@ -328,13 +373,20 @@ export class MemoryStore {
       .prepare('SELECT created_at FROM memories ORDER BY created_at DESC LIMIT 1')
       .get();
     return {
-      version: '0.4.0',
+      version: VERSION,
       total_memories: total,
       total_entities: entities,
       by_type: byType,
       last_created_at: last?.created_at ?? null,
       vault_path: this.vaultPath,
       db_path: this.db.filename ?? null,
+      embeddings: {
+        enabled: this.vectorsReady,
+        mode: embeddingsEnabled() ? embeddingsMode() : 'off',
+        model: embedModel(),
+        indexed: this.vectorsReady ? embeddingCount(this.db) : 0,
+        error: this.vectorError ?? null,
+      },
     };
   }
 }

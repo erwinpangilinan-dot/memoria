@@ -5,7 +5,7 @@ export function jsonResult(data) {
   return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
 }
 
-export function createMemoriaServer(store, version = '0.4.0') {
+export function createMemoriaServer(store, version = '0.5.0') {
   const server = new McpServer({ name: 'memoria', version });
 
   server.tool(
@@ -18,19 +18,19 @@ export function createMemoriaServer(store, version = '0.4.0') {
       force: z.boolean().optional().describe('Bypass salience gate'),
     },
     async ({ content, memory_type = 'semantic', importance = 'medium', force = false }) =>
-      jsonResult(store.remember(content, memory_type, importance, force))
+      jsonResult(await store.remember(content, memory_type, importance, force))
   );
 
   server.tool(
     'memoria_recall',
-    'Multi-signal recall: FTS + entity links + recency + importance. Returns top matches only.',
+    'Multi-signal recall: FTS + entity links + vector similarity + recency + importance. Returns top matches only.',
     {
       query: z.string().min(1),
       limit: z.number().int().min(1).max(20).optional(),
       memory_type: z.enum(['episodic', 'semantic']).optional(),
     },
     async ({ query, limit = 8, memory_type }) =>
-      jsonResult(store.recall(query, limit, memory_type ?? null))
+      jsonResult(await store.recall(query, limit, memory_type ?? null))
   );
 
   server.tool(
@@ -67,7 +67,7 @@ export function createMemoriaServer(store, version = '0.4.0') {
     'memoria_reindex',
     'Scan vault markdown files into SQLite (respects .memoriaignore). Use after human edits.',
     {},
-    async () => jsonResult(store.reindex())
+    async () => jsonResult(await store.reindex())
   );
 
   server.tool(

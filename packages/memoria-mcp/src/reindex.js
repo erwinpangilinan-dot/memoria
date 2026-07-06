@@ -3,6 +3,7 @@ import { join, relative } from 'node:path';
 import { extractEntities } from './entities.js';
 import { isIgnored, loadIgnorePatterns } from './ignore.js';
 import { parseVaultFile } from './vault.js';
+import { hasEmbedding } from './vectors.js';
 
 function walkMarkdown(dir, root, out = []) {
   for (const name of readdirSync(dir)) {
@@ -18,7 +19,7 @@ function walkMarkdown(dir, root, out = []) {
   return out;
 }
 
-export function reindexVault(store) {
+export async function reindexVault(store) {
   const vault = store.vaultPath;
   const patterns = loadIgnorePatterns(vault);
   const files = walkMarkdown(vault, vault).filter((rel) => !isIgnored(rel, patterns));
@@ -27,6 +28,7 @@ export function reindexVault(store) {
   let added = 0;
   let updated = 0;
   let skipped = 0;
+  let embedded = 0;
 
   for (const rel of files) {
     const parsed = parseVaultFile(join(vault, rel));
@@ -46,6 +48,8 @@ export function reindexVault(store) {
         .run(parsed.id, parsed.type, parsed.content, parsed.importance, rel, parsed.created_at);
       const names = parsed.entities.length ? parsed.entities : extractEntities(parsed.content);
       store.linkEntities(parsed.id, names, parsed.created_at);
+      await store.embedMemoryId(parsed.id, parsed.content);
+      embedded++;
       added++;
       continue;
     }
@@ -59,9 +63,22 @@ export function reindexVault(store) {
         .run(parsed.type, parsed.content, parsed.importance, rel, parsed.created_at, parsed.id);
       const names = parsed.entities.length ? parsed.entities : extractEntities(parsed.content);
       store.linkEntities(parsed.id, names, parsed.created_at);
+      await store.embedMemoryId(parsed.id, parsed.content);
+      embedded++;
       updated++;
+    } else if (store.vectorsReady && !hasEmbedding(store.db, parsed.id)) {
+      await store.embedMemoryId(parsed.id, parsed.content);
+      embedded++;
     }
   }
 
-  return { scanned: files.length, added, updated, skipped, indexed_ids: seen.size, ignored_patterns: patterns.length };
+  return {
+    scanned: files.length,
+    added,
+    updated,
+    skipped,
+    embedded,
+    indexed_ids: seen.size,
+    ignored_patterns: patterns.length,
+  };
 }

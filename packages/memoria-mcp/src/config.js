@@ -4,6 +4,8 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 export const ROOT = join(__dirname, '..', '..', '..');
 
+export const EMBED_DIM = 384;
+
 export function vaultPath() {
   return (
     process.env.MEMORIA_VAULT_PATH ||
@@ -31,4 +33,17 @@ export function httpPort() {
 
 export function httpToken() {
   return process.env.MEMORIA_HTTP_TOKEN || null;
+}
+
+/** auto | mock | off — mock = deterministic vectors for tests, no model download */
+export function embeddingsMode() {
+  return (process.env.MEMORIA_EMBEDDINGS || 'auto').toLowerCase();
+}
+
+export function embeddingsEnabled() {
+  return embeddingsMode() !== 'off';
+}
+
+export function embedModel() {
+  return process.env.MEMORIA_EMBED_MODEL || 'Xenova/all-MiniLM-L6-v2';
 }

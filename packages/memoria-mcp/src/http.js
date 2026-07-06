@@ -7,7 +7,7 @@ import { dbPath, httpHost, httpPort, httpToken, vaultPath } from './config.js';
 import { MemoryStore } from './store.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 
-const VERSION = '0.4.0';
+const VERSION = '0.5.0';
 const store = new MemoryStore(dbPath(), vaultPath());
 /** @type {Map<string, { transport: StreamableHTTPServerTransport, mcp: ReturnType<typeof createMemoriaServer> }>} */
 const sessions = new Map();

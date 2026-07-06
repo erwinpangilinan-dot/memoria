@@ -9,7 +9,7 @@ const DEFAULT_ENTITIES = ['erwin pangilinan', 'memory project'];
 const RECALL_QUERY = 'preferences facts project';
 const RECALL_LIMIT = 6;
 
-export function buildSessionContext(store, entities = DEFAULT_ENTITIES) {
+export async function buildSessionContext(store, entities = DEFAULT_ENTITIES) {
   const lines = [
     '# Memoria session context',
     '',
@@ -30,7 +30,7 @@ export function buildSessionContext(store, entities = DEFAULT_ENTITIES) {
     lines.push('');
   }
 
-  const hits = store.recall(RECALL_QUERY, RECALL_LIMIT);
+  const hits = await store.recall(RECALL_QUERY, RECALL_LIMIT);
   if (hits.length) {
     lines.push('## Recent relevant');
     for (const m of hits) {
@@ -45,14 +45,14 @@ export function buildSessionContext(store, entities = DEFAULT_ENTITIES) {
   return lines.join('\n').trim();
 }
 
-function main() {
+async function main() {
   const entities = (process.env.MEMORIA_SESSION_ENTITIES || DEFAULT_ENTITIES.join(','))
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean);
 
   const store = new MemoryStore(dbPath(), vaultPath());
-  const context = buildSessionContext(store, entities);
+  const context = await buildSessionContext(store, entities);
   const vault = vaultPath();
   const outPath = join(vault, '.memoria/session-context.md');
 
@@ -62,4 +62,7 @@ function main() {
   process.stdout.write(JSON.stringify({ additional_context: context }));
 }
 
-main();
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
