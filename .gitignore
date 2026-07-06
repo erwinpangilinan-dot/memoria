@@ -2,6 +2,9 @@
 vault/.memoria/
 vault/.brain/
 
+# Personal semantic memories — local only, never push to GitHub
+vault/Facts/
+
 # Node
 packages/memoria-mcp/node_modules/
 

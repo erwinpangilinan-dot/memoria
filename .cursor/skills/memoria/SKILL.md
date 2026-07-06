@@ -89,6 +89,7 @@ Use when setup is new or recall returns nothing unexpectedly.
 - Rely on chat history alone — verify with `memoria_recall`.
 - Store secrets unless the user explicitly asks.
 - Guess entity names — use normalized lowercase (server normalizes for you).
+- Commit or push `vault/Facts/` — personal semantic memories stay local (see `.gitignore`).
 
 ## Additional resources
 
