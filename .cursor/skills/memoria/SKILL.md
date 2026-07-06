@@ -81,7 +81,7 @@ Use when setup is new or recall returns nothing unexpectedly.
 
 - **Episodic** memories append to `Memory/Daily/YYYY-MM-DD.md` and get entity pages under `People/` or `Projects/`
 - **`.memoriaignore`** at vault root excludes paths from `memoria_reindex` (see `vault/.memoriaignore.example`)
-- **Session hooks** — `sessionStart` auto-recalls into `vault/.memoria/session-context.md`; `sessionEnd` logs daily note
+- **Session hooks** — global `~/.cursor/hooks.json` via `scripts/install-global-cursor.sh`; `sessionStart` auto-recalls into `vault/.memoria/session-context.md`; `sessionEnd` logs daily note
 - Run **`memoria_consolidate`** periodically (`dry_run: false` to apply)
 
 ## Do not

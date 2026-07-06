@@ -159,16 +159,24 @@ Episodic memories also append to `Memory/Daily/YYYY-MM-DD.md`. Entities get stub
 
 Copy `vault/.memoriaignore.example` → `vault/.memoriaignore`. One glob/prefix per line; used by `memoria_reindex`.
 
-### Conversation hooks
+### Conversation hooks (global)
 
-`.cursor/hooks.json`:
+Install once for all Cursor projects:
+
+```bash
+./scripts/install-global-cursor.sh
+```
+
+`~/.cursor/hooks.json`:
 
 | Event | Script | Effect |
 |-------|--------|--------|
 | `sessionStart` | `memoria-session-start.sh` | Recalls top memories → `vault/.memoria/session-context.md` + `additional_context` |
 | `sessionEnd` | `memoria-session-log.sh` | Appends line to today's daily note |
 
-Cursor rule `.cursor/rules/memoria-session.mdc` tells the agent to read `session-context.md` at chat start (fallback when IDE drops hook context).
+Global rule `~/.cursor/rules/memoria-session.mdc` tells the agent to read `session-context.md` at chat start (fallback when IDE drops hook context).
+
+Do **not** duplicate these in project `.cursor/hooks.json` when global hooks are installed.
 
 Configure entities: `MEMORIA_SESSION_ENTITIES=erwin pangilinan,memory project`
 

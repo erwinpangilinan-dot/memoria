@@ -1,0 +1,9 @@
+# Paths excluded from memoria_reindex vault scan (one pattern per line).
+# Lines starting with # are comments.
+
+# Local scratch / templates
+Memory/Daily/session-log.md
+Templates/
+
+# Private notes you edit by hand but don't want indexed
+# People/private/

@@ -3,9 +3,6 @@
     "mission-control": {
       "command": "bash",
       "args": ["/home/claude/claude_project/kanban_dashboard/mcp/run.sh"]
-    },
-    "memoria": {
-      "url": "http://127.0.0.1:8765/mcp"
     }
   }
 }

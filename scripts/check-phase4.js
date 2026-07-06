@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 /** ponytail: one-shot assert — fails if Phase 4 UX artifacts are missing or invalid. */
 import { readFileSync, existsSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+const cursorDir = join(homedir(), '.cursor');
 
 const required = [
   'packages/memoria-mcp/src/graph.js',
@@ -14,22 +16,23 @@ const required = [
   'packages/memoria-mcp/scripts/session-recall.js',
   'packages/memoria-mcp/scripts/log-session.js',
   'vault/.memoriaignore.example',
-  '.cursor/hooks.json',
-  '.cursor/hooks/memoria-session-log.sh',
-  '.cursor/hooks/memoria-session-start.sh',
-  '.cursor/rules/memoria-session.mdc',
+  'scripts/install-global-cursor.sh',
 ];
 
 for (const rel of required) {
   if (!existsSync(join(root, rel))) throw new Error(`missing: ${rel}`);
 }
 
-const hooks = JSON.parse(readFileSync(join(root, '.cursor/hooks.json'), 'utf8'));
+const globalHooks = join(cursorDir, 'hooks.json');
+if (!existsSync(globalHooks)) {
+  throw new Error('missing global hooks — run scripts/install-global-cursor.sh');
+}
+const hooks = JSON.parse(readFileSync(globalHooks, 'utf8'));
 if (!hooks.hooks?.sessionEnd?.some((h) => h.command?.includes('memoria-session-log'))) {
-  throw new Error('.cursor/hooks.json: sessionEnd memoria hook missing');
+  throw new Error('~/.cursor/hooks.json: sessionEnd memoria hook missing');
 }
 if (!hooks.hooks?.sessionStart?.some((h) => h.command?.includes('memoria-session-start'))) {
-  throw new Error('.cursor/hooks.json: sessionStart memoria hook missing');
+  throw new Error('~/.cursor/hooks.json: sessionStart memoria hook missing');
 }
 
 const index = readFileSync(join(root, 'packages/memoria-mcp/src/create-server.js'), 'utf8');
