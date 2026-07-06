@@ -9,12 +9,27 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 
 const VERSION = '0.4.0';
 const store = new MemoryStore(dbPath(), vaultPath());
-const mcp = createMemoriaServer(store, VERSION);
-const transport = new StreamableHTTPServerTransport({
-  sessionIdGenerator: () => randomUUID(),
-});
+/** @type {Map<string, { transport: StreamableHTTPServerTransport, mcp: ReturnType<typeof createMemoriaServer> }>} */
+const sessions = new Map();
 
-await mcp.connect(transport);
+async function createSession() {
+  let sessionId = null;
+  const transport = new StreamableHTTPServerTransport({
+    sessionIdGenerator: () => randomUUID(),
+    onsessioninitialized: (id) => {
+      sessionId = id;
+      sessions.set(id, { transport, mcp });
+    },
+    onsessionclosed: async (id) => {
+      const session = sessions.get(id);
+      sessions.delete(id);
+      await session?.mcp.close().catch(() => {});
+    },
+  });
+  const mcp = createMemoriaServer(store, VERSION);
+  await mcp.connect(transport);
+  return { transport, mcp, getSessionId: () => sessionId };
+}
 
 function authorized(req) {
   const token = httpToken();
@@ -31,12 +46,39 @@ async function readBody(req) {
   return JSON.parse(raw);
 }
 
+function isInitializeBody(body) {
+  const messages = Array.isArray(body) ? body : body ? [body] : [];
+  return messages.some((m) => m?.method === 'initialize');
+}
+
+async function resolveTransport(req, body) {
+  const sessionId = req.headers['mcp-session-id'];
+  if (sessionId) {
+    const session = sessions.get(sessionId);
+    if (!session) return null;
+    return session.transport;
+  }
+  if (req.method === 'POST' && isInitializeBody(body)) {
+    const session = await createSession();
+    return session.transport;
+  }
+  return null;
+}
+
 const httpServer = createServer(async (req, res) => {
   const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
 
   if (url.pathname === '/health') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ ok: true, service: 'memoria', version: VERSION, ...store.status() }));
+    res.end(
+      JSON.stringify({
+        ok: true,
+        service: 'memoria',
+        version: VERSION,
+        sessions: sessions.size,
+        ...store.status(),
+      })
+    );
     return;
   }
 
@@ -52,6 +94,12 @@ const httpServer = createServer(async (req, res) => {
   }
 
   const body = req.method === 'POST' ? await readBody(req) : undefined;
+  const transport = await resolveTransport(req, body);
+  if (!transport) {
+    res.writeHead(400, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'unknown or expired session; send initialize without mcp-session-id' }));
+    return;
+  }
   await transport.handleRequest(req, res, body);
 });
 
