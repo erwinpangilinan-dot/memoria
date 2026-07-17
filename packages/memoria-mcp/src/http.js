@@ -82,6 +82,59 @@ const httpServer = createServer(async (req, res) => {
     return;
   }
 
+  if (url.pathname === '/recall') {
+    if (!authorized(req)) {
+      res.writeHead(401, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'unauthorized' }));
+      return;
+    }
+    const q = url.searchParams.get('q');
+    if (!q) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'query parameter q is required' }));
+      return;
+    }
+    const limit = Number(url.searchParams.get('limit')) || 8;
+    const type = url.searchParams.get('type') || null;
+    try {
+      const results = await store.recall(q, limit, type);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(results));
+    } catch (err) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: err.message }));
+    }
+    return;
+  }
+
+  if (url.pathname === '/remember') {
+    if (!authorized(req)) {
+      res.writeHead(401, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'unauthorized' }));
+      return;
+    }
+    try {
+      const body = await readBody(req);
+      if (!body?.content) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'content is required' }));
+        return;
+      }
+      const result = await store.remember(
+        body.content,
+        body.memory_type || 'semantic',
+        body.importance || 'medium',
+        body.force || false
+      );
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(result));
+    } catch (err) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: err.message }));
+    }
+    return;
+  }
+
   if (url.pathname !== '/mcp') {
     res.writeHead(404).end();
     return;
